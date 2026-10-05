@@ -11,14 +11,26 @@ export async function fetchMyPRs(username, org) {
   const q = org
     ? `is:pr author:${username} org:${org}`
     : `is:pr author:${username}`;
-  const url = `${BASE}/search/issues?q=${encodeURIComponent(q)}&sort=updated&per_page=100`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`GitHub API ${res.status}: ${text.slice(0, 300)}`);
+
+  const PAGE = 100; // GitHub search API max per_page
+  let page = 1;
+  let allItems = [];
+
+  while (true) {
+    const url = `${BASE}/search/issues?q=${encodeURIComponent(q)}&sort=updated&per_page=${PAGE}&page=${page}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`GitHub API ${res.status}: ${text.slice(0, 300)}`);
+    }
+    const data = await res.json();
+    const items = data.items || [];
+    allItems = allItems.concat(items);
+
+    // GitHub search API caps results at 1000 regardless of total_count
+    if (items.length < PAGE || allItems.length >= 1000) break;
+    page += 1;
   }
-  const data = await res.json();
-  const allItems = data.items || [];
 
   // Collect unique repos from raw results for debug display
   const repoSet = new Set(allItems.map((pr) => extractRepo(pr.html_url)));

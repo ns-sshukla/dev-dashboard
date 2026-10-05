@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Ticket } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import { useRole, ROLES } from '../context/RoleContext';
 import { Section } from './Section';
 import { StatusBadge } from './StatusBadge';
 import { Pagination } from './Pagination';
@@ -33,6 +34,7 @@ const TYPE_ICONS = { Bug: '🐛', Story: '📖', Task: '✅', Epic: '⚡', 'Sub-
 export function JiraIssues({ jiraBaseUrl, sectionId }) {
   const { jira } = useData();
   const { issues, loading, error, lastRefreshed, refresh } = jira;
+  const { role, setRole } = useRole();
   const [filter, setFilter] = useState('All');
 
   const statusFilters = useMemo(() => {
@@ -58,6 +60,21 @@ export function JiraIssues({ jiraBaseUrl, sectionId }) {
       lastRefreshed={lastRefreshed}
       onRefresh={refresh}
     >
+      {/* Role toggle — determines which extra fields count as "mine" */}
+      <div className="flex flex-wrap items-center gap-2 px-5 pt-4">
+        <span className="text-xs text-slate-500 uppercase tracking-wide">View as</span>
+        <div className="flex gap-1 p-0.5 rounded-full" style={{ background: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.1)' }}>
+          {ROLES.map(({ id, label }) => (
+            <button key={id} onClick={() => setRole(id)}
+              className={`text-xs px-3 py-1 rounded-full transition-colors ${
+                role === id ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+              }`}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Status filter chips */}
       <div className="flex flex-wrap gap-2 px-5 pt-3 pb-2">
         {statusFilters.map((f) => (
@@ -89,6 +106,7 @@ export function JiraIssues({ jiraBaseUrl, sectionId }) {
                   <th className="text-left px-3 py-2 font-medium">Summary</th>
                   <th className="text-left px-3 py-2 font-medium">Status</th>
                   <th className="text-left px-3 py-2 font-medium">Priority</th>
+                  {role !== 'developer' && <th className="text-left px-3 py-2 font-medium">Via</th>}
                   <th className="text-left px-3 py-2 font-medium">Sprint</th>
                   <th className="text-left px-3 py-2 font-medium">Fix Version</th>
                   <th className="text-right px-3 py-2 font-medium">SP</th>
@@ -112,6 +130,17 @@ export function JiraIssues({ jiraBaseUrl, sectionId }) {
                       </td>
                       <td className="px-3 py-3 whitespace-nowrap"><StatusBadge value={f.status?.name} /></td>
                       <td className="px-3 py-3 whitespace-nowrap"><StatusBadge value={f.priority?.name} /></td>
+                      {role !== 'developer' && (
+                        <td className="px-3 py-3 whitespace-nowrap">
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={
+                            issue._matchedVia === 'Assignee'
+                              ? { background: 'rgba(148,163,184,0.12)', border: '1px solid rgba(148,163,184,0.25)', color: '#cbd5e1' }
+                              : { background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', color: '#a5b4fc' }
+                          }>
+                            {issue._matchedVia}
+                          </span>
+                        </td>
+                      )}
                       <td className="px-3 py-3 text-slate-400 text-xs max-w-[120px] truncate">{getSprint(f) || '–'}</td>
                       <td className="px-3 py-3 text-xs whitespace-nowrap">
                         {getFixVersions(f)

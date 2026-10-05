@@ -16,7 +16,7 @@ export function useGitHub(username, org) {
       setDebug({ totalFetched, sampleRepos, org, username });
 
       const enriched = await Promise.all(
-        items.slice(0, 50).map(async (pr) => {
+        items.map(async (pr) => {
           if (pr.state === 'open' && pr.pull_request?.url) {
             try {
               const reviews = await fetchPRReviews(pr.pull_request.url);

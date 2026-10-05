@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { fetchAssignedIssues } from '../api/jira';
 
-export function useJira() {
+export function useJira(role) {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -11,7 +11,7 @@ export function useJira() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchAssignedIssues();
+      const data = await fetchAssignedIssues(role);
       setIssues(data);
       setLastRefreshed(new Date());
     } catch (e) {
@@ -19,7 +19,7 @@ export function useJira() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [role]);
 
   return { issues, loading, error, lastRefreshed, refresh };
 }

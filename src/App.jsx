@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { LayoutDashboard, Ticket, GitPullRequest, FileText, StickyNote, Home, Bell } from 'lucide-react';
 import { DataProvider } from './context/DataContext';
 import { AlertProvider, useAlerts } from './context/AlertContext';
+import { RoleProvider } from './context/RoleContext';
 import { HomePage } from './pages/HomePage';
 import { JiraIssues } from './components/JiraIssues';
 import { GitHubPRs } from './components/GitHubPRs';
@@ -155,10 +156,12 @@ function AppShell() {
 
 export default function App() {
   return (
-    <DataProvider githubUsername={config.githubUsername} githubOrg={config.githubOrg}>
-      <AlertProvider>
-        <AppShell />
-      </AlertProvider>
-    </DataProvider>
+    <RoleProvider>
+      <DataProvider githubUsername={config.githubUsername} githubOrg={config.githubOrg}>
+        <AlertProvider>
+          <AppShell />
+        </AlertProvider>
+      </DataProvider>
+    </RoleProvider>
   );
 }
