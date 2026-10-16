@@ -15,14 +15,22 @@ export async function fetchMyPages() {
   // NOTE: currentUser() is a Jira-only JQL function — it does NOT work in Confluence CQL.
   // Use creator.accountid with the resolved account ID instead.
   const cql = `type = page AND creator.accountid = "${accountId}" ORDER BY created DESC`;
-  const url = `${BASE}/wiki/rest/api/search?cql=${encodeURIComponent(cql)}&limit=50&expand=content.space,content.version,content.history`;
+  // Search results are cursor-paginated; follow _links.next until exhausted.
+  let url = `${BASE}/wiki/rest/api/search?cql=${encodeURIComponent(cql)}&limit=100&expand=content.space,content.version,content.history`;
+  let all = [];
 
-  const res = await fetch(url);
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`Confluence search ${res.status}: ${t.slice(0, 200)}`);
+  while (url) {
+    const res = await fetch(url);
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`Confluence search ${res.status}: ${t.slice(0, 200)}`);
+    }
+    const data = await res.json();
+    // /wiki/rest/api/search returns { results: [{ content: {...} }], _links: { next, context } }
+    all = all.concat((data.results || []).map((r) => r.content).filter(Boolean));
+    const next = data._links?.next;
+    url = next ? `${BASE}${data._links.context ?? '/wiki'}${next}` : null;
   }
-  const data = await res.json();
-  // /wiki/rest/api/search returns { results: [{ content: {...} }] }
-  return (data.results || []).map((r) => r.content).filter(Boolean);
+
+  return all;
 }

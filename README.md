@@ -1,16 +1,48 @@
-# React + Vite
+# Developer Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A local React + Vite dashboard that shows your Jira tickets, GitHub PRs, Confluence pages, notes and on-call alerts in one place. API tokens stay server-side in the Vite dev proxy, so the browser never sees them.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Node.js 20.19+ or 22.12+** (required by Vite 8)
+- npm (bundled with Node)
 
-## React Compiler
+## Install dependencies
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+This is a Node project, so there is no `requirements.txt`. [package.json](package.json) lists the dependencies and [package-lock.json](package-lock.json) pins their exact versions.
 
-## Expanding the ESLint configuration
+```bash
+npm ci
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Configure
+
+Copy the example env file and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Purpose |
+|---|---|
+| `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN` | Jira Cloud access |
+| `CONFLUENCE_BASE_URL`, `CONFLUENCE_EMAIL`, `CONFLUENCE_API_TOKEN` | Confluence Cloud access (usually the same as Jira) |
+| `GITHUB_TOKEN` | GitHub personal access token |
+| `VITE_JIRA_BASE_URL`, `VITE_CONFLUENCE_BASE_URL` | Base URLs for deep links |
+| `VITE_GITHUB_USERNAME` | Your GitHub username |
+| `VITE_GITHUB_ORG` | Optional: show only PRs from this org |
+| `VITE_CONFLUENCE_ACCOUNT_ID` | Optional: your Atlassian account ID (see `<your-site>/rest/api/3/myself`) |
+| `VITE_DISPLAY_NAME`, `VITE_DESIGNATION` | Optional: name and title in the welcome banner |
+| `SLACK_BOT_TOKEN`, `VITE_SLACK_CHANNEL_ID` | Optional: on-call alerts from a Slack channel |
+| `ANTHROPIC_API_KEY` | Optional: AI features on the On-Call page |
+
+Restart the dev server after you change `.env`.
+
+## Run
+
+```bash
+npm run dev       # start the dev server
+npm run build     # production build
+npm run preview   # serve the production build
+npm run lint      # run ESLint
+```
